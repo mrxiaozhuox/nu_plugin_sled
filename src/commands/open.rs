@@ -40,7 +40,18 @@ impl SimplePluginCommand for SledOpen {
                 nu_protocol::SyntaxShape::String,
                 "db path (a directory)",
             )
-            .named("tree", nu_protocol::SyntaxShape::String, "load from tree", None)
+            .named(
+                "tree",
+                nu_protocol::SyntaxShape::String,
+                "load from tree",
+                None,
+            )
+            .named(
+                "prefix",
+                nu_protocol::SyntaxShape::String,
+                "load data by prefix",
+                None,
+            )
             .input_output_type(Type::Nothing, Type::Record(Box::new([])))
     }
 
@@ -66,17 +77,23 @@ impl SimplePluginCommand for SledOpen {
                     let tree = db.open_tree(val.as_bytes());
                     match tree {
                         Ok(tree) => {
-                            return read_from_iter(tree.iter(), &call);
+                            let mut iter = tree.iter();
+                            if let Some(Value::String { val, .. }) = call.get_flag_value("prefix") {
+                                iter = tree.scan_prefix(val.as_bytes());
+                            }
+                            return read_from_iter(iter, &call);
                         }
                         Err(e) => {
-                            return Err(LabeledError::new("db error").with_label(
-                                format!("failed to open tree: {:?}", e),
-                                call.head,
-                            ));
+                            return Err(LabeledError::new("db error")
+                                .with_label(format!("failed to open tree: {:?}", e), call.head));
                         }
                     }
                 } else {
-                    return read_from_iter(db.iter(), &call);
+                    let mut iter = db.iter();
+                    if let Some(Value::String { val, .. }) = call.get_flag_value("prefix") {
+                        iter = db.scan_prefix(val.as_bytes());
+                    }
+                    return read_from_iter(iter, &call);
                 }
             }
             Err(e) => Err(LabeledError::new("db error")

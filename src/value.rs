@@ -10,6 +10,7 @@ pub fn value_to_json(value: &Value) -> JsonValue {
         Value::Bool { val, .. } => JsonValue::from(*val),
         Value::Date { val, .. } => JsonValue::from(val.timestamp()),
         Value::Duration { val, .. } => JsonValue::from(*val),
+        Value::Filesize { val, .. } => JsonValue::from(*val),
         Value::List { vals, .. } => {
             let json_vals: Vec<JsonValue> = vals.iter().map(|v| value_to_json(v)).collect();
             JsonValue::Array(json_vals)
