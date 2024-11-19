@@ -1,5 +1,5 @@
 [package]
-authors = ["YuKun Liu"]
+authors = ["YuKun Liu <mrxzx.info@gmail.com>"]
 description = "Manage sled db in nushell"
 repository = "https://github.com/mrxiaozhuox/nu_plugin_sled"
 edition = "2021"
