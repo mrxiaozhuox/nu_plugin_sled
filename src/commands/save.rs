@@ -14,7 +14,7 @@ impl SimplePluginCommand for SledSave {
     }
 
     fn description(&self) -> &str {
-        "save a record to sled db (encode by rmp-serde)"
+        "Save a record to sled db (encode by rmp-serde)"
     }
 
     fn examples(&self) -> Vec<nu_protocol::Example> {

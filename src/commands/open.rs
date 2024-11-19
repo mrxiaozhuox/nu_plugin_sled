@@ -40,6 +40,11 @@ impl SimplePluginCommand for SledOpen {
                 nu_protocol::SyntaxShape::String,
                 "db path (a directory)",
             )
+            .switch(
+                "raw",
+                "load raw data (binary data)",
+                None,
+            )
             .named(
                 "tree",
                 nu_protocol::SyntaxShape::String,
@@ -108,9 +113,15 @@ where
 {
     let mut record = Record::new();
 
+    let raw = call.has_flag("raw").unwrap_or(false);
+
     for item in iter {
         if let Ok((k, v)) = item {
             let key = String::from_utf8_lossy(&k).to_string();
+            if raw {
+                record.insert(key, Value::binary(v.to_vec(), call.head));
+                continue;
+            }
             match rmp_serde::decode::from_slice::<JsonValue>(&v) {
                 Ok(decoded_value) => {
                     let nu_value = crate::value::json_to_value(&decoded_value, call.head);
