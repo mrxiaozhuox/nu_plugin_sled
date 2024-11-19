@@ -1,5 +1,5 @@
 
-use commands::{open::SledOpen, save::SledSave};
+use commands::{open::SledOpen, save::SledSave, trees::SledTrees};
 use nu_plugin::{serve_plugin, MsgPackSerializer, Plugin};
 
 mod commands;
@@ -12,7 +12,7 @@ impl Plugin for SledPlugin {
     }
 
     fn commands(&self) -> Vec<Box<dyn nu_plugin::PluginCommand<Plugin = Self>>> {
-        vec![Box::new(SledOpen), Box::new(SledSave)]
+        vec![Box::new(SledOpen), Box::new(SledSave), Box::new(SledTrees)]
     }
 }
 
