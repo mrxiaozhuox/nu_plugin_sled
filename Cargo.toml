@@ -5,7 +5,7 @@ repository = "https://github.com/mrxiaozhuox/nu_plugin_sled"
 edition = "2021"
 license = "MIT"
 name = "nu_plugin_sled"
-version = "0.1.0"
+version = "0.1.2"
 
 [dependencies]
 nu-plugin = { version = "0.102.0" }
