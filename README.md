@@ -1,8 +1,8 @@
-## nu_plugin_sled
+# nu_plugin_sled
 
 This plugin can help you manage your [`sled`](https://github.com/spacejam/sled?tab=readme-ov-file) database in nushell.
 
-### Usage:
+## Usage
 
 ```nushell
 > { name: "nu_plugin_sled", id: 1, update_at: (date now) } | sled-save db

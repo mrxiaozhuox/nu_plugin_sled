@@ -40,11 +40,7 @@ impl SimplePluginCommand for SledOpen {
                 nu_protocol::SyntaxShape::String,
                 "db path (a directory)",
             )
-            .switch(
-                "raw",
-                "load raw data (binary data)",
-                None,
-            )
+            .switch("raw", "load raw data (binary data)", None)
             .named(
                 "tree",
                 nu_protocol::SyntaxShape::String,
@@ -86,19 +82,17 @@ impl SimplePluginCommand for SledOpen {
                             if let Some(Value::String { val, .. }) = call.get_flag_value("prefix") {
                                 iter = tree.scan_prefix(val.as_bytes());
                             }
-                            return read_from_iter(iter, &call);
+                            read_from_iter(iter, call)
                         }
-                        Err(e) => {
-                            return Err(LabeledError::new("db error")
-                                .with_label(format!("failed to open tree: {:?}", e), call.head));
-                        }
+                        Err(e) => Err(LabeledError::new("db error")
+                            .with_label(format!("failed to open tree: {:?}", e), call.head)),
                     }
                 } else {
                     let mut iter = db.iter();
                     if let Some(Value::String { val, .. }) = call.get_flag_value("prefix") {
                         iter = db.scan_prefix(val.as_bytes());
                     }
-                    return read_from_iter(iter, &call);
+                    read_from_iter(iter, call)
                 }
             }
             Err(e) => Err(LabeledError::new("db error")
@@ -115,24 +109,22 @@ where
 
     let raw = call.has_flag("raw").unwrap_or(false);
 
-    for item in iter {
-        if let Ok((k, v)) = item {
-            let key = String::from_utf8_lossy(&k).to_string();
-            if raw {
-                record.insert(key, Value::binary(v.to_vec(), call.head));
-                continue;
+    for (k, v) in iter.flatten() {
+        let key = String::from_utf8_lossy(&k).to_string();
+        if raw {
+            record.insert(key, Value::binary(v.to_vec(), call.head));
+            continue;
+        }
+        match rmp_serde::decode::from_slice::<JsonValue>(&v) {
+            Ok(decoded_value) => {
+                let nu_value = crate::value::json_to_value(&decoded_value, call.head);
+                record.insert(key, nu_value);
             }
-            match rmp_serde::decode::from_slice::<JsonValue>(&v) {
-                Ok(decoded_value) => {
-                    let nu_value = crate::value::json_to_value(&decoded_value, call.head);
-                    record.insert(key, nu_value);
-                }
-                Err(err) => {
-                    return Err(LabeledError::new("decode error").with_label(
-                        format!("failed to decode value for key {}: {:?}", key, err),
-                        call.head,
-                    ));
-                }
+            Err(err) => {
+                return Err(LabeledError::new("decode error").with_label(
+                    format!("failed to decode value for key {}: {:?}", key, err),
+                    call.head,
+                ));
             }
         }
     }

@@ -32,7 +32,12 @@ impl SimplePluginCommand for SledSave {
                 nu_protocol::SyntaxShape::String,
                 "sled db path (a directory)",
             )
-            .named("tree", nu_protocol::SyntaxShape::String, "save into tree", None)
+            .named(
+                "tree",
+                nu_protocol::SyntaxShape::String,
+                "save into tree",
+                None,
+            )
             .input_output_type(Type::Record(Box::new([])), Type::Nothing)
     }
 
@@ -53,43 +58,33 @@ impl SimplePluginCommand for SledSave {
                     if let Some(Value::String { val, .. }) = tree_flag {
                         let tree = db.open_tree(val.as_bytes());
                         if let Err(e) = &tree {
-                            return Err(LabeledError::new("db error").with_label(
-                                format!("failed to open tree: {:?}", e),
-                                call.head,
-                            ));
+                            return Err(LabeledError::new("db error")
+                                .with_label(format!("failed to open tree: {:?}", e), call.head));
                         }
                         let tree = tree.unwrap();
                         for (key, value) in input_value.iter() {
                             let value = value_to_json(value);
                             let data = rmp_serde::encode::to_vec(&value);
-                            match data {
-                                Ok(v) => {
-                                    let _ = tree.insert(key.as_str(), v);
-                                },
-                                _ => {},
+                            if let Ok(v) = data {
+                                let _ = tree.insert(key.as_str(), v);
                             }
                         }
                     } else {
                         for (key, value) in input_value.iter() {
                             let value = value_to_json(value);
                             let data = rmp_serde::encode::to_vec(&value);
-                            match data {
-                                Ok(v) => {
-                                    let _ = db.insert(key.as_str(), v);
-                                },
-                                _ => {},
+                            if let Ok(v) = data {
+                                let _ = db.insert(key.as_str(), v);
                             }
                         }
                     }
                     Ok(Value::nothing(call.head))
-                },
+                }
                 Err(e) => Err(LabeledError::new("db error")
                     .with_label(format!("failed to connect sled db: {:?}", e), call.head)),
             }
         } else {
-            return Err(
-                LabeledError::new("input error").with_label("data must be a record", call.head)
-            )
+            Err(LabeledError::new("input error").with_label("data must be a record", call.head))
         }
     }
 }

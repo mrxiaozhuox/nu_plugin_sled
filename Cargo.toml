@@ -8,8 +8,8 @@ name = "nu_plugin_sled"
 version = "0.1.0"
 
 [dependencies]
-nu-plugin = { version = "0.101" }
-nu-protocol = { version = "0.101", features = ["plugin"] }
+nu-plugin = { version = "0.102.0" }
+nu-protocol = { version = "0.102.0", features = ["plugin"] }
 
 sled = "0.34.7"
 serde = { version = "1", features = ["derive"] }
@@ -17,5 +17,5 @@ serde_json = "1"
 rmp-serde = "1"
 
 [dev-dependencies]
-nu-plugin-test-support = { version = "0.101" }
-nu-cmd-lang = { version = "0.101" }
+nu-plugin-test-support = { version = "0.102.0" }
+nu-cmd-lang = { version = "0.102.0" }
